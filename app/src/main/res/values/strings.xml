@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Farm Mates</string>
+    <string name="homeNav">Inicio</string>
+    <string name="mapNav">Mapa</string>
+    <string name="profileNav">Perfil</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
