@@ -5,4 +5,14 @@
     <string name="profileNav">Perfil</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="appTitle">Farm Mates</string>
+    <string name="login">Iniciar Sesión</string>
+    <string name="emailLabel">Correo electrónico:</string>
+    <string name="passwordLabel">Contraseña:</string>
+    <string name="loginLabel">Ingresar</string>
+    <string name="fingerprintAlt">Login with fingerprint</string>
+    <string name="forgotPassword">¿Olvidaste tu contraseña?</string>
+    <string name="signUpLabel">¿Aún no tienes una cuenta?</string>
+    <string name="goSignUp">Regístrate</string>
+    <string name="fingerprintLogin">Ingresa con huella</string>
 </resources>
