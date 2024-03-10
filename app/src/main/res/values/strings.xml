@@ -19,4 +19,10 @@
     <string name="confirmPassword">Confirma tu contraseña:</string>
     <string name="signUpButton">Registrarse</string>
     <string name="alreadyAccount">¿Ya tienes una cuenta?</string>
+    <string name="nextButton">Siguiente</string>
+    <string name="nameLabel">Nombre (s):</string>
+    <string name="lastNameLabel">Apellido (s):</string>
+    <string name="phoneNumberLabel">Número de teléfono</string>
+    <string name="addProfilePicAlt">Añade tu foto de perfil</string>
+    <string name="goBackButton">Volver</string>
 </resources>

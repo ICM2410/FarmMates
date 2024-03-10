@@ -14,14 +14,16 @@ class RegisterActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.goLogin.setOnClickListener { goLoginPage() }
-        binding.signUpButton.setOnClickListener { handleRegister() }
+
+        // TODO : Send page information to handle register
+        binding.goNextButton.setOnClickListener { goNextRegisterPage() }
     }
 
     private fun goLoginPage() {
         startActivity(Intent(baseContext, LoginActivity::class.java))
     }
 
-    private fun handleRegister() {
-        // TODO : Handle register
+    private fun goNextRegisterPage() {
+        startActivity(Intent(baseContext, PersonalRegisterActivity::class.java))
     }
 }
