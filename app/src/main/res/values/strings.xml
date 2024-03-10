@@ -25,4 +25,10 @@
     <string name="phoneNumberLabel">Número de teléfono</string>
     <string name="addProfilePicAlt">Añade tu foto de perfil</string>
     <string name="goBackButton">Volver</string>
+    <string name="profilePicAlt">Foto de perfil - Accede a tu cuenta</string>
+    <string name="mapAlt">Mapa</string>
+    <string name="newReport">Novedad</string>
+    <string name="requestSupplies">Suministros</string>
+    <string name="tasks">Tareas</string>
+    <string name="chatAlt">Mensajes</string>
 </resources>

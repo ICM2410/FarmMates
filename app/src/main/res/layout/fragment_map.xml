@@ -1,20 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mapFrameLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/lightGreen"
+    android:padding="15dp"
     tools:context=".Map">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:id="@+id/mapTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/mapNav"
-        android:textColor="@color/mainGreen"
-        android:textSize="50sp"
-        android:textStyle="italic" />
+    <LinearLayout
+        android:id="@+id/searchSection"
+        android:layout_width="match_parent"
+        android:layout_height="75dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-</FrameLayout>
+
+        <android.widget.SearchView
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/profilePic"
+            android:layout_width="150dp"
+            android:layout_height="75dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:contentDescription="@string/profilePicAlt"
+            android:src="@drawable/profileplaceholder" />
+    </LinearLayout>
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/searchSection">
+
+
+        <ImageView
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:contentDescription="@string/mapAlt"
+            android:scaleType="fitCenter"
+            android:src="@drawable/map_placeholder" />
+
+        <ImageButton
+            android:id="@+id/chatButton"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_gravity="end"
+            android:backgroundTint="@android:color/transparent"
+            android:contentDescription="@string/chatAlt"
+            android:scaleType="fitCenter"
+            android:src="@drawable/chat" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="75dp"
+            android:layout_gravity="bottom">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="bottom"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/reportButton"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:layout_width="220dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:drawableLeft="@drawable/report"
+                    android:gravity="center"
+                    android:maxHeight="75dp"
+                    android:text="@string/newReport"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/suppliesButton"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:layout_width="250dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:drawableLeft="@drawable/supplies"
+                    android:gravity="center"
+                    android:maxHeight="75dp"
+                    android:text="@string/requestSupplies"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/taskButton"
+                    style="?android:attr/buttonBarButtonStyle"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:drawableLeft="@drawable/task"
+                    android:gravity="center"
+                    android:maxHeight="75dp"
+                    android:text="@string/tasks"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
