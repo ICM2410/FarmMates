@@ -15,4 +15,8 @@
     <string name="signUpLabel">¿Aún no tienes una cuenta?</string>
     <string name="goSignUp">Regístrate</string>
     <string name="fingerprintLogin">Ingresa con huella</string>
+    <string name="signup">Regístrate</string>
+    <string name="confirmPassword">Confirma tu contraseña:</string>
+    <string name="signUpButton">Registrarse</string>
+    <string name="alreadyAccount">¿Ya tienes una cuenta?</string>
 </resources>

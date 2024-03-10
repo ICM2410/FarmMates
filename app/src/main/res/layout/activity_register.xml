@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="20dp"
-    tools:context=".LoginActivity">
+    tools:context=".RegisterActivity">
 
     <TextView
         android:id="@+id/appTitle"
@@ -24,7 +24,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
-        android:text="@string/login"
+        android:text="@string/signup"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -73,38 +73,36 @@
             android:id="@+id/password"
             android:layout_width="match_parent"
             android:layout_height="50dp"
+            android:layout_marginBottom="10dp"
             android:autofillHints="password"
             android:ems="10"
             android:inputType="textPassword" />
 
         <TextView
-            android:id="@+id/forgotPassword"
+            android:id="@+id/confirmLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="0dp"
-            android:text="@string/forgotPassword"
-            android:textAlignment="textEnd"
-            android:textColor="@color/markPink"
-            android:textSize="15sp"
-            android:textStyle="bold" />
+            android:layout_marginBottom="10dp"
+            android:labelFor="@id/confirmPassword"
+            android:text="@string/confirmPassword"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/confirmPassword"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:autofillHints="password"
+            android:ems="10"
+            android:inputType="textPassword" />
 
         <Button
-            android:id="@+id/loginButton"
+            android:id="@+id/signUpButton"
             android:layout_width="200dp"
             android:layout_height="0dp"
             android:layout_marginTop="30dp"
             android:layout_weight="1"
-            android:text="@string/loginLabel"
+            android:text="@string/signUpButton"
             android:textSize="20sp" />
-
-        <Button
-            android:id="@+id/fingerprintLogin"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_marginTop="10dp"
-            android:layout_weight="1"
-            android:drawableEnd="@drawable/loginfinger"
-            android:textSize="18sp" />
 
     </LinearLayout>
 
@@ -119,21 +117,21 @@
         app:layout_constraintTop_toBottomOf="@+id/linearLayout">
 
         <TextView
-            android:id="@+id/signUpLabel"
+            android:id="@+id/loginLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/signUpLabel"
+            android:text="@string/alreadyAccount"
             android:textAlignment="center"
             android:textSize="15sp"
             android:textStyle="bold" />
 
         <Button
-            android:id="@+id/goSignUp"
+            android:id="@+id/goLogin"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:text="@string/goSignUp"
+            android:text="@string/login"
             android:textSize="15sp" />
     </LinearLayout>
 

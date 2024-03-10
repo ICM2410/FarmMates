@@ -15,9 +15,19 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.loginButton.setOnClickListener { goToMainPage() }
+        binding.goSignUp.setOnClickListener { goToSignUp() }
     }
 
     private fun goToMainPage() {
+        handleLogin()
         startActivity(Intent(baseContext, MainActivity::class.java))
+    }
+
+    private fun goToSignUp() {
+        startActivity(Intent(baseContext, RegisterActivity::class.java))
+    }
+
+    private fun handleLogin() {
+        // TODO : Handle login
     }
 }
