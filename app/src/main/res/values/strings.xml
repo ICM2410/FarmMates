@@ -31,4 +31,7 @@
     <string name="requestSupplies">Suministros</string>
     <string name="tasks">Tareas</string>
     <string name="chatAlt">Mensajes</string>
+    <string name="location_permission_denied" />
+    <string name="permission_required_toast" />
+    <string name="permission_rationale_location" />
 </resources>
