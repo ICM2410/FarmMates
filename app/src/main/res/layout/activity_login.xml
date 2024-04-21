@@ -91,20 +91,23 @@
         <Button
             android:id="@+id/loginButton"
             android:layout_width="200dp"
-            android:layout_height="0dp"
+            android:layout_height="55dp"
             android:layout_marginTop="30dp"
             android:layout_weight="1"
             android:text="@string/loginLabel"
             android:textSize="20sp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/fingerprintLogin"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:layout_marginTop="10dp"
             android:layout_weight="1"
-            android:drawableEnd="@drawable/loginfinger"
-            android:textSize="18sp" />
+            android:paddingTop="10dp"
+            android:textSize="18sp"
+            app:icon="@drawable/loginfinger"
+            app:iconGravity="top"
+            app:iconSize="30dp" />
 
     </LinearLayout>
 

@@ -31,4 +31,9 @@
     <string name="requestSupplies">Suministros</string>
     <string name="tasks">Tareas</string>
     <string name="chatAlt">Mensajes</string>
+
+    <string name="prompt_info_title">FarmMates</string>
+    <string name="prompt_info_subtitle">Login</string>
+    <string name="prompt_info_description">FarmMates uses your fingertip ot login faster and safer</string>
+    <string name="prompt_info_use_app_password">Use password instead</string>
 </resources>
