@@ -8,4 +8,5 @@
     <color name="lightBlue">#ff59c2df</color>
     <color name="markPink">#ffe4a58e</color>
     <color name="unchecked">#C7C7C7</color>
+    <color name="purple_200">#673AB7</color>
 </resources>

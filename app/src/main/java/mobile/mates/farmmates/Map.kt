@@ -23,7 +23,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import android.Manifest
 import android.graphics.BitmapFactory
 import android.location.Location
-import android.location.LocationRequest
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -48,7 +47,16 @@ import java.util.Date
 import kotlin.math.roundToInt
 import java.io.IOException
 import com.google.gson.Gson
-
+import com.google.android.gms.location.LocationRequest
+import com.google.maps.android.PolyUtil
+import mobile.mates.farmmates.models.LatLngGR
+import mobile.mates.farmmates.models.OriginOrDestination
+import mobile.mates.farmmates.models.googleRoutesRequest
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 
 class Map : AppCompatActivity(), OnMapReadyCallback,
@@ -113,7 +121,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private fun createLightSensorListener(): SensorEventListener {
         val ret: SensorEventListener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent?) {
-                if (this@LocationActivity::mMap.isInitialized) {
+                if (this@Map::mMap.isInitialized) {
                     if (event != null) {
                         if (event.values[0] < 1000) {
                             mMap.setMapStyle(
@@ -472,8 +480,22 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         // Crear el cuerpo de la solicitud utilizando tus clases de datos
         val requestBodyData = googleRoutesRequest(
-            OriginOrDestination(Location(LatLngGR(origin.latitude, origin.longitude))),
-            OriginOrDestination(Location(LatLngGR(destination.latitude, destination.longitude))),
+            OriginOrDestination(
+                mobile.mates.farmmates.models.Location(
+                    LatLngGR(
+                        origin.latitude,
+                        origin.longitude
+                    )
+                )
+            ),
+            OriginOrDestination(
+                mobile.mates.farmmates.models.Location(
+                    LatLngGR(
+                        destination.latitude,
+                        destination.longitude
+                    )
+                )
+            ),
             "DRIVE",
             "TRAFFIC_AWARE"
         )

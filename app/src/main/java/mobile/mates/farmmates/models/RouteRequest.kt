@@ -1,7 +1,5 @@
-package com.javeriana.taller2_movil.models
-
+package mobile.mates.farmmates.models
 import kotlinx.serialization.Serializable
-
 @Serializable
 data class LatLngGR(
     val latitude: Double,

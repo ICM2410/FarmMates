@@ -51,14 +51,10 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    implementation("com.squareup.okhttp3: 3.2.0")
-    //noinspection UseTomlInstead
-    implementation("com.squareup.okhttp3:okhttp")
-    //noinspection UseTomlInstead
-    implementation("com.squareup.okhttp3:logging-interceptor")
-    //noinspection BomWithoutPlatform
-    implementation("com.squareup.okhttp3:okhttp-bom:4.12.0")
-    implementation("com.google.gson:2.8.8")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.maps.android:android-maps-utils:3.4.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
 
 
 }
