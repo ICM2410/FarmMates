@@ -1,36 +1,43 @@
 package mobile.mates.farmmates
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.location.Geocoder
-import androidx.appcompat.app.AppCompatActivity
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import android.Manifest
-import android.graphics.BitmapFactory
-import android.location.Location
-import android.util.Log
-import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolygonOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.gson.Gson
+import com.google.maps.android.PolyUtil
 import com.javeriana.taller2_movil.models.RoutesResponse
 import com.javeriana.taller2_movil.models.myRoute
 import kotlinx.coroutines.CoroutineScope
@@ -41,22 +48,19 @@ import kotlinx.coroutines.withContext
 import mobile.mates.farmmates.PermissionUtils.PermissionDeniedDialog.Companion.newInstance
 import mobile.mates.farmmates.PermissionUtils.isPermissionGranted
 import mobile.mates.farmmates.databinding.FragmentMapBinding
-import java.io.File
-import java.io.FileWriter
-import java.util.Date
-import kotlin.math.roundToInt
-import java.io.IOException
-import com.google.gson.Gson
-import com.google.android.gms.location.LocationRequest
-import com.google.maps.android.PolyUtil
 import mobile.mates.farmmates.models.LatLngGR
 import mobile.mates.farmmates.models.OriginOrDestination
 import mobile.mates.farmmates.models.googleRoutesRequest
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
+import java.util.Date
+import kotlin.math.roundToInt
 
 
 class Map : AppCompatActivity(), OnMapReadyCallback,
@@ -153,7 +157,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         mMap.setOnMyLocationButtonClickListener(this)
         mMap.setOnMyLocationClickListener(this)
         mMap.uiSettings.isMyLocationButtonEnabled = true
-        mMap.setPadding(0, 200, 20, 0)
+        mMap.setPadding(0, 200, 20, 200)
         enableMyLocation()
 
         // Add a marker in Sydney and move the camera
@@ -206,6 +210,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
 
         }
+        addZone()
     }
 
     fun callRequestRoute(origen: LatLng, destino: LatLng) {
@@ -558,6 +563,38 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         }
         return mutableListOf()
+
+    }
+
+    private fun addZone()
+    {
+        // Crear un polígono con las opciones deseadas
+        val polygon = mMap.addPolygon(
+            PolygonOptions()
+                .add(
+                    LatLng(40.0, -80.0),
+                    LatLng(40.0, -78.0),
+                    LatLng(42.0, -78.0),
+                    LatLng(42.0, -80.0)
+                )
+                .strokeColor(Color.RED)
+                .fillColor(ContextCompat.getColor(this, R.color.translucent_blue))
+        )
+
+// Agregar un título al polígono
+        polygon.tag = "Zona de cultivo 3"
+        polygon.tag?.let { title ->
+            Toast.makeText(this, title.toString(), Toast.LENGTH_SHORT).show()
+        }
+
+
+
+
+        mMap.addMarker(MarkerOptions()
+            .position(LatLng(41.0, -79.0))
+            .title("Tractor T49"));
+
+
 
     }
 }
