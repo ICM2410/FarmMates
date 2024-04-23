@@ -34,6 +34,9 @@
             android:value="AIzaSyAoixCSGBozzBjpV_njSFf3eTRTnFaW9kg" />
 
         <activity
+            android:name=".EnableBiometricLoginActivity"
+            android:exported="false" />
+        <activity
             android:name=".PersonalRegisterActivity"
             android:exported="false" />
         <activity
