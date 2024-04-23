@@ -5,4 +5,33 @@
     <string name="profileNav">Perfil</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="appTitle">Farm Mates</string>
+    <string name="login">Iniciar Sesión</string>
+    <string name="emailLabel">Correo electrónico:</string>
+    <string name="passwordLabel">Contraseña:</string>
+    <string name="loginLabel">Ingresar</string>
+    <string name="fingerprintAlt">Login with fingerprint</string>
+    <string name="forgotPassword">¿Olvidaste tu contraseña?</string>
+    <string name="signUpLabel">¿Aún no tienes una cuenta?</string>
+    <string name="goSignUp">Regístrate</string>
+    <string name="fingerprintLogin">Ingresa con huella</string>
+    <string name="signup">Regístrate</string>
+    <string name="confirmPassword">Confirma tu contraseña:</string>
+    <string name="signUpButton">Registrarse</string>
+    <string name="alreadyAccount">¿Ya tienes una cuenta?</string>
+    <string name="nextButton">Siguiente</string>
+    <string name="nameLabel">Nombre (s):</string>
+    <string name="lastNameLabel">Apellido (s):</string>
+    <string name="phoneNumberLabel">Número de teléfono</string>
+    <string name="addProfilePicAlt">Añade tu foto de perfil</string>
+    <string name="goBackButton">Volver</string>
+    <string name="profilePicAlt">Foto de perfil - Accede a tu cuenta</string>
+    <string name="mapAlt">Mapa</string>
+    <string name="newReport">Novedad</string>
+    <string name="requestSupplies">Suministros</string>
+    <string name="tasks">Tareas</string>
+    <string name="chatAlt">Mensajes</string>
+    <string name="location_permission_denied" />
+    <string name="permission_required_toast" />
+    <string name="permission_rationale_location" />
 </resources>
