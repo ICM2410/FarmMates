@@ -39,4 +39,16 @@
     <string name="permission_required_toast" />
     <string name="permission_rationale_location" />
     <string name="ruta">Ruta</string>
+    <string name="partnersCard">Colaboradores</string>
+    <string name="machinesCard">Maquinaria</string>
+    <string name="tempPlaceholder">22°</string>
+    <string name="datePlaceholder">Abr 28, 2024</string>
+    <string name="locationPlaceholder">San Jose, California</string>
+    <string name="weather_icon_alt">weather icon</string>
+    <string name="categoriesTitle">Categorías</string>
+    <string name="recentTasks">Tareas recientes</string>
+    <string name="taskPlaceholder">Reparar molino 4</string>
+    <string name="sectorPlaceholder">Sector 7, Cacao</string>
+    <string name="task2Placeholder">Recolectar café</string>
+    <string name="sector2Placeholder">Sector 3, Café</string>
 </resources>
