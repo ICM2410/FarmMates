@@ -38,4 +38,5 @@
     <string name="location_permission_denied" />
     <string name="permission_required_toast" />
     <string name="permission_rationale_location" />
+    <string name="ruta">Ruta</string>
 </resources>

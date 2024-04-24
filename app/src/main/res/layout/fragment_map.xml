@@ -138,6 +138,26 @@
             android:textColor="#FFFFFF"
             android:translationY="20dp" />
 
+        <RelativeLayout
+            android:id="@+id/actionsWrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="100dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/previousSteps"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:paddingTop="11dp"
+                android:paddingEnd="30dp"
+                app:icon="@drawable/step_back"
+                app:iconGravity="top"
+                app:iconSize="25dp"
+                tools:ignore="RtlSymmetry" />
+        </RelativeLayout>
+
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

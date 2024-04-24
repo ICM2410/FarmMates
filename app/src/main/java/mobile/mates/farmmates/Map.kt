@@ -172,6 +172,15 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        binding.previousSteps.setOnClickListener {
+            val sites = obtainSites()
+            mMap.addPolyline(
+                PolylineOptions()
+                    .clickable(true)
+                    .addAll(sites.map { LatLng(it.latitud, it.longitud) })
+                    .color(ContextCompat.getColor(baseContext, R.color.purple_200))
+            )
+        }
 
     }
 
@@ -244,7 +253,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                         .roundToInt().toString() + " metros",
                     Toast.LENGTH_SHORT
                 ).show()
-            }catch (e: Exception) {
+            } catch (e: Exception) {
                 Log.e("punto10", "Error al calcular la distancia: $e")
             }
 
@@ -618,8 +627,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
     }
 
-    private fun addZone()
-    {
+    private fun addZone() {
         // Crear un polígono con las opciones deseadas
         val polygon = mMap.addPolygon(
             PolygonOptions()
@@ -634,14 +642,14 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         )
 
 
-        mMap.addMarker(MarkerOptions()
-            .position(LatLng(41.0, -79.0))
-            .title("Tractor T49"))
+        mMap.addMarker(
+            MarkerOptions()
+                .position(LatLng(41.0, -79.0))
+                .title("Tractor T49")
+        )
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(41.0, -79.0)))
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f))
-
-
 
 
     }
