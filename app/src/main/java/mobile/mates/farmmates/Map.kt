@@ -2,6 +2,7 @@ package mobile.mates.farmmates
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -80,6 +81,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var geocoder: Geocoder
     private lateinit var sensorManager: SensorManager
     private var lightSensor: Sensor? = null
+    private var temperatureSensor: Sensor? = null
+    private var humiditySensor: Sensor? = null
     private lateinit var lightEventListener: SensorEventListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,7 +91,57 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         binding = FragmentMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        temperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
+        humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY)
 
+
+        if (temperatureSensor == null) {
+            // El dispositivo no tiene un sensor de temperatura
+            binding.tempVal.text = "No hay sensor de temperatura"
+
+        } else {
+            val temperatureListener = object : SensorEventListener {
+                override fun onSensorChanged(event: SensorEvent?) {
+                    val temperatureValue = event?.values?.get(0)
+                    // Procesar el valor de la temperatura aquí
+                    binding.tempVal.text = temperatureValue.toString() + " °C"
+                }
+
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+                    // Manejar cambios en la precisión del sensor si es necesario
+                }
+            }
+
+            sensorManager.registerListener(
+                temperatureListener,
+                temperatureSensor,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
+        }
+
+        if (humiditySensor == null) {
+            // El dispositivo no tiene un sensor de humedad relativa
+            binding.ambVal.text = "No hay sensor de humedad relativa"
+        } else {
+            val humidityListener = object : SensorEventListener {
+                override fun onSensorChanged(event: SensorEvent?) {
+                    val humidityValue = event?.values?.get(0)
+                    // Procesar el valor de la humedad relativa aquí
+                    binding.ambVal.text = humidityValue.toString() + " %"
+                }
+
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+                    // Manejar cambios en la precisión del sensor si es necesario
+                }
+            }
+
+            sensorManager.registerListener(
+                humidityListener,
+                humiditySensor,
+                SensorManager.SENSOR_DELAY_NORMAL
+            )
+        }
         sensorManager = getSystemService(
             SENSOR_SERVICE
         ) as SensorManager
@@ -154,6 +207,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         mMap.uiSettings.isZoomControlsEnabled = true
+        mMap.uiSettings.isCompassEnabled = true
         mMap.setOnMyLocationButtonClickListener(this)
         mMap.setOnMyLocationClickListener(this)
         mMap.uiSettings.isMyLocationButtonEnabled = true
@@ -174,10 +228,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
             if (location != null) {
                 val userLocation = LatLng(location.latitude, location.longitude)
 
-                // Añadir un marcador en la ubicación actual del usuario y mover la cámara
-                addMarker(userLocation.latitude, userLocation.longitude, "Ubicación actual")
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
-
                 // Iniciar la escucha de cambios de ubicación
                 startLocationUpdates()
             }
@@ -186,12 +236,18 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         mMap.setOnMapLongClickListener {
             mMap.clear()
             findAddress(it)?.let { it1 -> addMarker(it.latitude, it.longitude, it1) }
-            Toast.makeText(
-                this,
-                "Distancia:" + lastKnownLocation!!.distanceTo(convertLatLngToLocation(it))
-                    .roundToInt().toString() + " metros",
-                Toast.LENGTH_SHORT
-            ).show()
+
+            try {
+                Toast.makeText(
+                    this,
+                    "Distancia:" + lastKnownLocation!!.distanceTo(convertLatLngToLocation(it))
+                        .roundToInt().toString() + " metros",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }catch (e: Exception) {
+                Log.e("punto10", "Error al calcular la distancia: $e")
+            }
+
 
             lifecycleScope.launch {
                 callRequestRoute(
@@ -334,16 +390,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     }
 
     override fun onMyLocationButtonClick(): Boolean {
-        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT)
-            .show()
         // Return false so that we don't consume the event and the default behavior still occurs
         // (the camera animates to the user's current position).
         return false
     }
 
     override fun onMyLocationClick(location: Location) {
-        Toast.makeText(this, "Current location:\n$location", Toast.LENGTH_LONG)
-            .show()
     }
 
     override fun onRequestPermissionsResult(
@@ -581,18 +633,14 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                 .fillColor(ContextCompat.getColor(this, R.color.translucent_blue))
         )
 
-// Agregar un título al polígono
-        polygon.tag = "Zona de cultivo 3"
-        polygon.tag?.let { title ->
-            Toast.makeText(this, title.toString(), Toast.LENGTH_SHORT).show()
-        }
-
-
-
 
         mMap.addMarker(MarkerOptions()
             .position(LatLng(41.0, -79.0))
-            .title("Tractor T49"));
+            .title("Tractor T49"))
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(41.0, -79.0)))
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(15f))
+
 
 
 

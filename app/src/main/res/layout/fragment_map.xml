@@ -121,6 +121,23 @@
             </LinearLayout>
         </HorizontalScrollView>
 
+        <TextView
+            android:id="@+id/tempVal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#000000"
+            android:backgroundTint="#000000"
+            android:textColor="#FFFFFF"
+            android:textColorLink="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/ambVal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#000000"
+            android:textColor="#FFFFFF"
+            android:translationY="20dp" />
+
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
