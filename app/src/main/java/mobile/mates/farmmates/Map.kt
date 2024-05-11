@@ -30,13 +30,12 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolygonOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.maps.android.PolyUtil
 import com.javeriana.taller2_movil.models.RoutesResponse
@@ -52,16 +51,22 @@ import mobile.mates.farmmates.databinding.FragmentMapBinding
 import mobile.mates.farmmates.models.LatLngGR
 import mobile.mates.farmmates.models.OriginOrDestination
 import mobile.mates.farmmates.models.googleRoutesRequest
+import mobile.mates.farmmates.utils.getWeatherInfo
+import mobile.mates.farmmates.utils.processWeatherResponse
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.internal.wait
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 import java.util.Date
+import kotlin.concurrent.thread
 import kotlin.math.roundToInt
+import kotlin.collections.Map as KotlinMap
+
 
 
 class Map : AppCompatActivity(), OnMapReadyCallback,
@@ -91,6 +96,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         binding = FragmentMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         temperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
         humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY)
@@ -98,14 +105,14 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         if (temperatureSensor == null) {
             // El dispositivo no tiene un sensor de temperatura
-            binding.tempVal.text = "No hay sensor de temperatura"
+            //binding.tempVal.text = "No hay sensor de temperatura"
 
         } else {
             val temperatureListener = object : SensorEventListener {
                 override fun onSensorChanged(event: SensorEvent?) {
                     val temperatureValue = event?.values?.get(0)
                     // Procesar el valor de la temperatura aquí
-                    binding.tempVal.text = temperatureValue.toString() + " °C"
+                    //tempVal.text = temperatureValue.toString() + " °C"
                 }
 
                 override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
@@ -122,13 +129,13 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         if (humiditySensor == null) {
             // El dispositivo no tiene un sensor de humedad relativa
-            binding.ambVal.text = "No hay sensor de humedad relativa"
+            //binding.ambVal.text = "No hay sensor de humedad relativa"
         } else {
             val humidityListener = object : SensorEventListener {
                 override fun onSensorChanged(event: SensorEvent?) {
                     val humidityValue = event?.values?.get(0)
                     // Procesar el valor de la humedad relativa aquí
-                    binding.ambVal.text = humidityValue.toString() + " %"
+                    //binding.ambVal.text = humidityValue.toString() + " %"
                 }
 
                 override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
@@ -243,7 +250,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         }
 
         mMap.setOnMapLongClickListener {
-            mMap.clear()
             findAddress(it)?.let { it1 -> addMarker(it.latitude, it.longitude, it1) }
 
             try {
@@ -256,6 +262,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
             } catch (e: Exception) {
                 Log.e("punto10", "Error al calcular la distancia: $e")
             }
+
+
+
 
 
             lifecycleScope.launch {
@@ -275,7 +284,11 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
 
         }
-        addZone()
+        addAllZones()
+        drawAgriculturalObjects()
+
+        val thread = Thread { updateWeather() }
+        thread.start()
     }
 
     fun callRequestRoute(origen: LatLng, destino: LatLng) {
@@ -527,6 +540,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     }
 
     private fun drawPolylineOnMap(ruta: String) {
+        mMap.clear()
+        addAllZones()
+        drawAgriculturalObjects()
 
         Log.i("route", ruta)
         val decodedPath: List<LatLng> = PolyUtil.decode(ruta)
@@ -627,32 +643,152 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
     }
 
-    private fun addZone() {
-        // Crear un polígono con las opciones deseadas
-        val polygon = mMap.addPolygon(
-            PolygonOptions()
-                .add(
-                    LatLng(40.0, -80.0),
-                    LatLng(40.0, -78.0),
-                    LatLng(42.0, -78.0),
-                    LatLng(42.0, -80.0)
-                )
-                .strokeColor(Color.RED)
-                .fillColor(ContextCompat.getColor(this, R.color.translucent_blue))
+    private fun addAllZones() {
+        // Obtener la instancia de Firestore
+        val db = FirebaseFirestore.getInstance()
+
+        // Leer todos los documentos de la colección 'zones'
+        db.collection("zones").get().addOnSuccessListener { documents ->
+            if (documents != null && !documents.isEmpty) {
+                for (document in documents) {
+                    // Extraer los puntos de cada documento y crear un polígono
+                    val points =
+                        document.get("points") as? List<KotlinMap<String, Double>> ?: listOf()
+                    val polygonOptions = PolygonOptions()
+
+                    for (point in points) {
+                        val lat = point["latitude"] ?: 0.0
+                        val lng = point["longitude"] ?: 0.0
+                        polygonOptions.add(LatLng(lat, lng))
+                    }
+
+                    polygonOptions.strokeColor(Color.GRAY)
+                    polygonOptions.strokeWidth(2f)
+                    polygonOptions.fillColor(ContextCompat.getColor(this, R.color.translucent_blue))
+                    val polygon = mMap.addPolygon(polygonOptions)
+
+                    // Extraer datos del marcador si están disponibles y añadir al mapa
+                    val markerData = document.get("marker") as? KotlinMap<String, Double>
+                    if (markerData != null) {
+                        val markerLat = markerData["latitude"] ?: 0.0
+                        val markerLng = markerData["longitude"] ?: 0.0
+                        // Cargar el drawable en un Bitmap
+                        val originalBitmap =
+                            BitmapFactory.decodeResource(baseContext.resources, R.drawable.zona)
+
+                        // Redimensionar el Bitmap
+                        val resizedBitmap =
+                            Bitmap.createScaledBitmap(originalBitmap, 150, 150, false)
+
+                        // Convertir el Bitmap redimensionado en un BitmapDescriptor
+                        val icon = BitmapDescriptorFactory.fromBitmap(resizedBitmap)
+                        mMap.addMarker(
+                            MarkerOptions()
+                                //Agregar un marcador personalizado
+                                .icon(icon)
+                                .position(LatLng(markerLat, markerLng))
+                                .title(document.getString("name"))  // Usando el nombre de la zona como título del marcador
+                        )
+                    }
+                }
+
+                // Mover la cámara al primer marcador (opcional)
+                documents.documents.firstOrNull()?.let {
+                    val firstMarker = it.get("marker") as? KotlinMap<String, Double>
+                    if (firstMarker != null) {
+                        mMap.moveCamera(
+                            CameraUpdateFactory.newLatLng(
+                                LatLng(
+                                    firstMarker["latitude"] ?: 0.0, firstMarker["longitude"] ?: 0.0
+                                )
+                            )
+                        )
+                        mMap.moveCamera(CameraUpdateFactory.zoomTo(10f))  // Ajustar el zoom según la necesidad
+                    }
+                }
+            } else {
+                Log.d("Firestore", "No documents found in 'zones' collection")
+            }
+        }.addOnFailureListener { exception ->
+            Log.d("Firestore", "Error getting documents: ", exception)
+        }
+    }
+
+
+    private fun drawAgriculturalObjects() {
+        val db = FirebaseFirestore.getInstance()
+        val iconMap = mapOf(
+            "Tanque de agua" to R.drawable.tanqueagua,
+            "Cosechadora" to R.drawable.cosechadora,
+            "Remolque" to R.drawable.remolque,
+            "camion" to R.drawable.camion,
+            "Tractor" to R.drawable.tractor2
         )
 
+        db.collection("agriculturalObjects").get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    val type = document.getString("type") ?: "Unknown"
+                    val lat = document.getDouble("latitude") ?: 0.0
+                    val lng = document.getDouble("longitude") ?: 0.0
+                    val position = LatLng(lat, lng)
 
-        mMap.addMarker(
-            MarkerOptions()
-                .position(LatLng(41.0, -79.0))
-                .title("Tractor T49")
-        )
+                    // Cargar el drawable en un Bitmap
+                    val originalBitmap = BitmapFactory.decodeResource(
+                        baseContext.resources,
+                        iconMap[type] ?: R.drawable.marcador
+                    )
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(LatLng(41.0, -79.0)))
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(15f))
+                    // Redimensionar el Bitmap
+                    val resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, 100, 100, false)
+
+                    // Convertir el Bitmap redimensionado en un BitmapDescriptor
+                    val icon = BitmapDescriptorFactory.fromBitmap(resizedBitmap)
+
+
+                    val markerOptions = MarkerOptions().position(position).title(type).icon(icon)
+                    mMap.addMarker(markerOptions)
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting documents: $exception")
+            }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun updateWeather() {
+        Log.i("Weather", "Actualizando el clima")
+        while (true) {
+            try {
+                if (lastKnownLocation != null) {
+                    getWeatherInfo(
+                        lastKnownLocation!!.latitude,
+                        lastKnownLocation!!.longitude
+                    ) { responseData ->
+                        val weatherResponse = processWeatherResponse(responseData)
+
+                        // Acceder a datos específicos
+                        Log.i("Weather", "$weatherResponse")
+                        if (weatherResponse != null) {
+                            runOnUiThread {
+                                binding.tempVal.text = "${weatherResponse.current.temperature2m} °C"
+                                binding.ambVal.text = "${weatherResponse.current.relativeHumidity2m} %"
+                            }
+                        }
+
+
+                    }
+                }
+                Thread.sleep(10000)
+            } catch (e: Exception) {
+                Log.e("Weather", "Error al obtener el clima: $e")
+            }
+
+
+        }
 
 
     }
-}
 
+}
 

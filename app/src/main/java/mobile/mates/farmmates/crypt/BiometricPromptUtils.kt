@@ -5,13 +5,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import mobile.mates.farmmates.R
+import kotlin.reflect.KFunction1
 
 // Since we are using the same methods in more than one Activity, better give them their own file.
 object BiometricPromptUtils {
     private const val TAG = "BiometricPromptUtils"
     fun createBiometricPrompt(
         activity: AppCompatActivity,
-        processSuccess: (BiometricPrompt.AuthenticationResult) -> Unit
+        processSuccess: KFunction1<BiometricPrompt.AuthenticationResult, Unit>
     ): BiometricPrompt {
         val executor = ContextCompat.getMainExecutor(activity)
 

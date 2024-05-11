@@ -51,4 +51,5 @@
     <string name="sectorPlaceholder">Sector 7, Cacao</string>
     <string name="task2Placeholder">Recolectar café</string>
     <string name="sector2Placeholder">Sector 3, Café</string>
+    <string name="channel_description">Canal de notificaciones\n</string>
 </resources>

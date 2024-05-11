@@ -2,22 +2,27 @@ package mobile.mates.farmmates
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
 import mobile.mates.farmmates.crypt.BiometricPromptUtils
 import mobile.mates.farmmates.crypt.CIPHERTEXT_WRAPPER
 import mobile.mates.farmmates.crypt.CryptographyManager
 import mobile.mates.farmmates.crypt.SHARED_PREFS_FILENAME
 import mobile.mates.farmmates.databinding.ActivityLoginBinding
+import mobile.mates.farmmates.utils
+import mobile.mates.farmmates.utils.addSampleAgriculturalObjects
 
 class LoginActivity : AppCompatActivity() {
 
@@ -40,6 +45,7 @@ class LoginActivity : AppCompatActivity() {
         )
 
 
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -70,6 +76,7 @@ class LoginActivity : AppCompatActivity() {
         binding.goSignUp.setOnClickListener { goToSignUp() }
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun enableBiometricLogin() {
         awaitForBio = true
         handleLogin(binding.emailAddress.text.toString(), binding.password.text.toString())
@@ -106,6 +113,7 @@ class LoginActivity : AppCompatActivity() {
         startActivity(Intent(baseContext, RegisterActivity::class.java))
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun handleLogin(email: String, password: String) {
         if (validForm(email, password)) {
             auth.signInWithEmailAndPassword(email, password).addOnCompleteListener {
@@ -132,6 +140,7 @@ class LoginActivity : AppCompatActivity() {
         Log.i("Cipher", "Token from server: $token")
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun showBiometricPromptForEnabling() {
         val canAuthenticate = BiometricManager.from(applicationContext).canAuthenticate()
         if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
@@ -216,4 +225,6 @@ class LoginActivity : AppCompatActivity() {
         val regex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\$"
         return email.matches(regex.toRegex())
     }
+
+
 }
