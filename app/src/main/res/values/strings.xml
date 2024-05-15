@@ -52,4 +52,11 @@
     <string name="task2Placeholder">Recolectar café</string>
     <string name="sector2Placeholder">Sector 3, Café</string>
     <string name="channel_description">Canal de notificaciones\n</string>
+    <string name="altReportImage">Añadir imagen a reporte</string>
+    <string name="addDescription">Descripción:</string>
+    <string name="addDescriptionHint">Añade una descripción</string>
+    <string name="addDateLabel">Fecha del incidente:</string>
+    <string name="addDateHint">Selecciona una fecha:</string>
+    <string name="triageLabel">Prioridad: </string>
+    <string name="sendReport">Enviar</string>
 </resources>

@@ -1,4 +1,4 @@
-package mobile.mates.farmmates
+package mobile.mates.farmmates.utils
 
 import android.Manifest
 import android.Manifest.permission
@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.DialogFragment
+import mobile.mates.farmmates.R
 
 /**
  * Utility class for access to runtime permissions.

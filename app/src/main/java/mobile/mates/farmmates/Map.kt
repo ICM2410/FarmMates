@@ -3,6 +3,7 @@ package mobile.mates.farmmates
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -45,28 +46,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import mobile.mates.farmmates.PermissionUtils.PermissionDeniedDialog.Companion.newInstance
-import mobile.mates.farmmates.PermissionUtils.isPermissionGranted
+import mobile.mates.farmmates.utils.PermissionUtils.PermissionDeniedDialog.Companion.newInstance
+import mobile.mates.farmmates.utils.PermissionUtils.isPermissionGranted
 import mobile.mates.farmmates.databinding.FragmentMapBinding
 import mobile.mates.farmmates.models.LatLngGR
 import mobile.mates.farmmates.models.OriginOrDestination
 import mobile.mates.farmmates.models.googleRoutesRequest
-import mobile.mates.farmmates.utils.getWeatherInfo
-import mobile.mates.farmmates.utils.processWeatherResponse
+import mobile.mates.farmmates.utils.PermissionUtils
+import mobile.mates.farmmates.utils.RestUtils.getWeatherInfo
+import mobile.mates.farmmates.utils.RestUtils.processWeatherResponse
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import okhttp3.internal.wait
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 import java.util.Date
-import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 import kotlin.collections.Map as KotlinMap
-
 
 
 class Map : AppCompatActivity(), OnMapReadyCallback,
@@ -95,8 +94,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         binding = FragmentMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         temperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
@@ -189,6 +186,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
             )
         }
 
+        binding.reportButton.setOnClickListener { goToReports() }
+
+    }
+
+    private fun goToReports() {
+        startActivity(Intent(baseContext, ReportActivity::class.java))
     }
 
     private fun createLightSensorListener(): SensorEventListener {
@@ -772,7 +775,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                         if (weatherResponse != null) {
                             runOnUiThread {
                                 binding.tempVal.text = "${weatherResponse.current.temperature2m} °C"
-                                binding.ambVal.text = "${weatherResponse.current.relativeHumidity2m} %"
+                                binding.ambVal.text =
+                                    "${weatherResponse.current.relativeHumidity2m} %"
                             }
                         }
 
