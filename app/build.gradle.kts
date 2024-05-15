@@ -62,7 +62,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
     implementation ("com.google.firebase:firebase-firestore-ktx:25.0.0")
     implementation ("com.google.firebase:firebase-messaging:24.0.0")
-
-
-
+    implementation("com.google.firebase:firebase-database:21.0.0")
+    implementation("com.google.firebase:firebase-storage:21.0.0")
 }
