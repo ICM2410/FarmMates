@@ -15,14 +15,11 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.FirebaseFirestore
 import mobile.mates.farmmates.crypt.BiometricPromptUtils
 import mobile.mates.farmmates.crypt.CIPHERTEXT_WRAPPER
 import mobile.mates.farmmates.crypt.CryptographyManager
 import mobile.mates.farmmates.crypt.SHARED_PREFS_FILENAME
 import mobile.mates.farmmates.databinding.ActivityLoginBinding
-import mobile.mates.farmmates.utils
-import mobile.mates.farmmates.utils.addSampleAgriculturalObjects
 
 class LoginActivity : AppCompatActivity() {
 

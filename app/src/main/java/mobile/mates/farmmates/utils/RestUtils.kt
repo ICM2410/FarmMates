@@ -1,4 +1,4 @@
-package mobile.mates.farmmates
+package mobile.mates.farmmates.utils
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
@@ -10,7 +10,7 @@ import okhttp3.Callback
 import okhttp3.Response
 import java.io.IOException
 
-object utils {
+object RestUtils {
     fun addSampleAgriculturalObjects() {
         val db = FirebaseFirestore.getInstance()
         val objects = listOf(
