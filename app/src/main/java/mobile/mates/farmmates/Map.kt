@@ -35,13 +35,17 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolygonOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
@@ -128,6 +132,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     /*******************************************************************/
 
     private lateinit var binding: FragmentMapBinding
+    private val userMarkers = mutableMapOf<String, Marker>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -152,6 +158,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)!!
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)!!
         /*******************************************************************/
+
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -335,6 +342,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
             }
 
         }
+        addUserPositionListener()
         addAllZones()
         drawAgriculturalObjects()
         val thread = Thread { updateWeather() }
@@ -382,7 +390,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
                 if (distance > 30) {
                     // IF the distance is greater than 30 meters, update the last known location
-                    //TODO("Send the new location to the server")
                     lastKnownLocation = newLocation
                     currentUser?.lat = newLocation.latitude
                     currentUser?.long = newLocation.longitude
@@ -390,6 +397,50 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                 }
             }
         }
+    }
+
+    private fun addUserPositionListener() {
+        val usersRef = database.getReference("users")
+        usersRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (userSnapshot in snapshot.children) {
+                    val userId = userSnapshot.key ?: continue
+                    val lat = userSnapshot.child("lat").getValue(Double::class.java) ?: continue
+                    val long = userSnapshot.child("long").getValue(Double::class.java) ?: continue
+                    val position = LatLng(lat, long)
+
+                    // Cargar el drawable en un Bitmap
+                    val originalBitmap = BitmapFactory.decodeResource(baseContext.resources, R.drawable.alfiler)
+
+                    // Redimensionar el Bitmap
+                    val resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, 100, 100, false)
+
+                    // Convertir el Bitmap redimensionado en un BitmapDescriptor
+                    val icon = BitmapDescriptorFactory.fromBitmap(resizedBitmap)
+
+                    // Remove the old marker if exists
+                    userMarkers[userId]?.remove()
+
+                    if (userMarkers[userId] == null) {
+                        val marker = mMap.addMarker(MarkerOptions().position(position).title(userSnapshot.child("name").getValue(String::class.java)).icon(icon))
+                        if (marker != null) {
+                            userMarkers[userId] = marker
+                        }
+
+                    } else {
+                        val marker = mMap.addMarker(MarkerOptions().position(position).title(userSnapshot.child("name").getValue(String::class.java)))
+                        if (marker != null) {
+                            userMarkers[userId] = marker
+                        }
+
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("Firebase", "Error listening for user location updates: ${error.message}")
+            }
+        })
     }
 
     private fun updateUser() {

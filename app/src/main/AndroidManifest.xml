@@ -20,6 +20,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FarmMates"
         tools:targetApi="31">
+        <service
+            android:name=".services.Notifications"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:foregroundServiceType="dataSync" >
+        </service>
+
         <activity
             android:name=".ChatListActivity"
             android:exported="false" />

@@ -20,6 +20,7 @@ import mobile.mates.farmmates.crypt.CIPHERTEXT_WRAPPER
 import mobile.mates.farmmates.crypt.CryptographyManager
 import mobile.mates.farmmates.crypt.SHARED_PREFS_FILENAME
 import mobile.mates.farmmates.databinding.ActivityLoginBinding
+import mobile.mates.farmmates.services.Notifications
 
 class LoginActivity : AppCompatActivity() {
 
@@ -71,6 +72,14 @@ class LoginActivity : AppCompatActivity() {
             )
         }
         binding.goSignUp.setOnClickListener { goToSignUp() }
+
+        /******************************Notifications Service**************************/
+        if (!Notifications.isRunning) {
+            val serviceIntent = Intent(this, Notifications::class.java)
+            serviceIntent.putExtra("currentUserId", auth.currentUser!!.uid?:"")
+            startForegroundService(serviceIntent)
+        }
+        /****************************************************************************/
     }
 
     @RequiresApi(Build.VERSION_CODES.P)
