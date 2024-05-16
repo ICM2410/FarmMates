@@ -166,7 +166,7 @@ class PersonalRegisterActivity : AppCompatActivity() {
     }
 
     private fun goToMainPage() {
-        startActivity(Intent(baseContext, MainActivity::class.java))
+        startActivity(Intent(baseContext, Map::class.java))
     }
 
     private fun goBack() {

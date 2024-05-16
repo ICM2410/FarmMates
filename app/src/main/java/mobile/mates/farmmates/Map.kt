@@ -52,6 +52,7 @@ import com.google.gson.Gson
 import com.google.maps.android.PolyUtil
 import com.javeriana.taller2_movil.models.RoutesResponse
 import com.javeriana.taller2_movil.models.myRoute
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -168,7 +169,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        binding.goBackToMenu.setOnClickListener { goToMainMenu() }
         binding.reportButton.setOnClickListener { goToReports() }
         binding.chatButton.setOnClickListener { goToChat() }
         binding.reportButton.setOnClickListener { goToReports() }
@@ -180,10 +180,24 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
+    private fun loadProfilePic() {
+        val url = currentUser?.profilePicUrl
+        Log.i("Profile", "loading from $url")
+        if (!url.isNullOrEmpty()) {
+            Picasso
+                .get()
+                .load(url)
+                .into(binding.profilePic)
+        } else {
+            binding.profilePic.setImageResource(R.drawable.profile_pic_placeholder)
+        }
+    }
+
     private fun getCurrentUser() {
         val ref = database.getReference(usersSelector + auth.currentUser!!.uid)
         ref.get().addOnSuccessListener {
             currentUser = it.getValue(User::class.java)
+            loadProfilePic()
         }
     }
 
@@ -258,10 +272,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
     private fun goToReports() {
         startActivity(Intent(baseContext, ReportActivity::class.java))
-    }
-
-    private fun goToMainMenu() {
-        startActivity(Intent(baseContext, MainActivity::class.java))
     }
 
     private fun goToChat() {

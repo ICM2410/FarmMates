@@ -88,7 +88,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         Log.d("FCM", "Sending notification.")
         try{
         // Crear la notificación
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, Map::class.java)
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
 
         val pendingIntent: PendingIntent = PendingIntent.getActivity(

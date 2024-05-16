@@ -8,10 +8,12 @@
     android:layout_marginEnd="8dp">
 
     <androidx.cardview.widget.CardView
-        app:flow_horizontalAlign="end"
+        android:maxWidth="300dp"
         android:id="@+id/card_gchat_message_me"
-        android:layout_width="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
+        android:maxHeight="300dp"
         app:cardBackgroundColor="@color/mainGreen"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
@@ -29,7 +31,7 @@
             <TextView
                 android:id="@+id/text_gchat_message_me"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginBottom="8dp"
                 android:maxWidth="260dp"
                 android:paddingLeft="12dp"

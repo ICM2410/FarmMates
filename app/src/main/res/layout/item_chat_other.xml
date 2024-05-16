@@ -2,45 +2,24 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="80dp"
     android:layout_marginStart="8dp"
     android:layout_marginTop="16dp">
-
-    <TextView
-        android:id="@+id/text_gchat_date_other"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:paddingStart="8dp"
-        android:paddingTop="4dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="4dp"
-        android:text="June 10"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/image_gchat_profile_other"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="16dp"
-        android:contentDescription="@string/profilePicAlt"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text_gchat_date_other" />
 
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_gchat_message_other"
-        android:layout_width="wrap_content"
+        android:maxWidth="300dp"
+        android:layout_marginBottom="10dp"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@color/lightGreen"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:cardPreventCornerOverlap="false"
         app:cardUseCompatPadding="true"
-        app:layout_constraintStart_toEndOf="@+id/image_gchat_profile_other"
-        app:layout_constraintTop_toBottomOf="@+id/text_gchat_date_other">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:id="@+id/layout_gchat_container_other"

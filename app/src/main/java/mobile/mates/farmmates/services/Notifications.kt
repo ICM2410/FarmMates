@@ -13,11 +13,8 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import mobile.mates.farmmates.MainActivity
 import mobile.mates.farmmates.R
 
 class Notifications : Service() {
@@ -114,7 +111,7 @@ class Notifications : Service() {
     private fun sendNotification(createdBy: String, description: String) {
         val notificationId = createdBy.hashCode() // Usamos el hash del nombre para generar un ID único.
 
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, Map::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
         val pendingIntent: PendingIntent = PendingIntent.getActivity(
