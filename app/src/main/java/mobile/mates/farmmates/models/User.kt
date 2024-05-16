@@ -1,12 +1,13 @@
 package mobile.mates.farmmates.models
 
-import java.util.Date
-
-class User (
+class User(
     var name: String,
     var lastName: String,
     var phoneNumber: String,
-    var dateOfBirth: Date,
     var id: String,
-    var profilePicUrl : String
-)
+    var profilePicUrl: String,
+    var lat: Double,
+    var long: Double
+) {
+    constructor() : this("", "", "", "", "", 0.0, 0.0)
+}

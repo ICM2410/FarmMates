@@ -15,7 +15,5 @@ class ReceivedMessageHolder(itemView: View) : RecyclerView.ViewHolder(itemView) 
 
         val formatter = SimpleDateFormat("EEE MMM dd - HH:mm", Locale.ENGLISH)
         binding.textGchatTimestampOther.text = formatter.format(message.createdAt).toString()
-
-        binding.textGchatUserOther.text = message.sender.name
     }
 }

@@ -66,5 +66,6 @@
     <string name="noAvailableUsers">No hay usuarios</string>
     <string name="sendButton">Send</string>
     <string name="sendMessageAlt">Send message</string>
+    <string name="loading">Cargando...</string>
     <string name="typeMessageHint">Enter Message</string>
 </resources>

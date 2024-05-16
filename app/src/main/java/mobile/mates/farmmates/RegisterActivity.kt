@@ -24,28 +24,11 @@ class RegisterActivity : AppCompatActivity() {
         auth = Firebase.auth
 
         binding.goLogin.setOnClickListener { goLoginPage() }
-        binding.goNextButton.setOnClickListener {
-            handleSignUp(
-                binding.emailAddress.text.toString(),
-                binding.password.text.toString(),
-                binding.confirmPassword.text.toString()
-            )
-        }
+        binding.goNextButton.setOnClickListener { goNextRegisterPage() }
     }
 
     private fun goLoginPage() {
         startActivity(Intent(baseContext, LoginActivity::class.java))
-    }
-
-    private fun handleSignUp(email: String, password: String, confirmPassword: String) {
-        if (!validForm(email, password, confirmPassword)) return
-
-        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
-            if (it.isSuccessful) {
-                goNextRegisterPage()
-            } else
-                Toast.makeText(baseContext, "Sign up failed", Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun validForm(email: String, password: String, confirmPassword: String): Boolean {
@@ -73,11 +56,11 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun goNextRegisterPage() {
-        Toast.makeText(baseContext, "Welcome to FarmMates", Toast.LENGTH_SHORT).show()
-
-        // TODO : Handle user personal info
-        // startActivity(Intent(baseContext, PersonalRegisterActivity::class.java))
-
-        startActivity(Intent(baseContext, MainActivity::class.java))
+        val intent = Intent(baseContext, PersonalRegisterActivity::class.java)
+        val bundle = Bundle()
+        bundle.putString("email", binding.emailAddress.text.toString())
+        bundle.putString("password", binding.confirmPassword.text.toString())
+        intent.putExtra("info", bundle)
+        startActivity(intent)
     }
 }

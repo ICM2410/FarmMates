@@ -38,6 +38,11 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolygonOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.database
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.gson.Gson
 import com.google.maps.android.PolyUtil
@@ -53,6 +58,7 @@ import mobile.mates.farmmates.utils.PermissionUtils.isPermissionGranted
 import mobile.mates.farmmates.databinding.FragmentMapBinding
 import mobile.mates.farmmates.models.LatLngGR
 import mobile.mates.farmmates.models.OriginOrDestination
+import mobile.mates.farmmates.models.User
 import mobile.mates.farmmates.models.googleRoutesRequest
 import mobile.mates.farmmates.utils.PermissionUtils
 import mobile.mates.farmmates.utils.RestUtils.getWeatherInfo
@@ -103,6 +109,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var sensorManager: SensorManager
     private var lightSensor: Sensor? = null
     private lateinit var lightEventListener: SensorEventListener
+
     /*******************************************************************/
 
     // Variables para filtro pasa bajos y control de frecuencia
@@ -112,10 +119,15 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private val updateInterval = 500
     private var isCompassClicked = false
 
+    /******************************Firebase***************************/
+    private lateinit var auth: FirebaseAuth
+    private lateinit var database: FirebaseDatabase
+    private val usersSelector = "users/"
+    private var currentUser: User? = null
+
+    /*******************************************************************/
 
     private lateinit var binding: FragmentMapBinding
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,11 +135,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         binding = FragmentMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        auth = Firebase.auth
+        database = Firebase.database
+        getCurrentUser()
+
         //Geocoder initialization
         geocoder = Geocoder(baseContext)
-
-
-
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
@@ -159,15 +172,25 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
             setMapToNorth()
         }
     }
+
+    private fun getCurrentUser() {
+        val ref = database.getReference(usersSelector + auth.currentUser!!.uid)
+        ref.get().addOnSuccessListener {
+            currentUser = it.getValue(User::class.java)
+        }
+    }
+
     private fun setMapToNorth() {
-        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-            CameraPosition.Builder()
-                .target(mMap.cameraPosition.target) // keep the current position
-                .zoom(mMap.cameraPosition.zoom) // keep the current zoom level
-                .bearing(0f) // set bearing to north
-                .tilt(mMap.cameraPosition.tilt) // keep the current tilt
-                .build()
-        ))
+        mMap.animateCamera(
+            CameraUpdateFactory.newCameraPosition(
+                CameraPosition.Builder()
+                    .target(mMap.cameraPosition.target) // keep the current position
+                    .zoom(mMap.cameraPosition.zoom) // keep the current zoom level
+                    .bearing(0f) // set bearing to north
+                    .tilt(mMap.cameraPosition.tilt) // keep the current tilt
+                    .build()
+            )
+        )
         binding.compassImage.rotation = 0f
     }
 
@@ -187,7 +210,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         if (hasGravity && hasGeomagnetic) {
             val rotationMatrix = FloatArray(9)
-            val success = SensorManager.getRotationMatrix(rotationMatrix, null, gravity, geomagnetic)
+            val success =
+                SensorManager.getRotationMatrix(rotationMatrix, null, gravity, geomagnetic)
             if (success) {
                 val orientation = FloatArray(3)
                 SensorManager.getOrientation(rotationMatrix, orientation)
@@ -203,14 +227,16 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
                     if (!this::mMap.isInitialized) return
                     // Actualizar la orientación del mapa de Google
-                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                        CameraPosition.Builder()
-                            .target(mMap.cameraPosition.target)
-                            .zoom(mMap.cameraPosition.zoom)
-                            .bearing(smoothedAzimuth)
-                            .tilt(mMap.cameraPosition.tilt)
-                            .build()
-                    ))
+                    mMap.animateCamera(
+                        CameraUpdateFactory.newCameraPosition(
+                            CameraPosition.Builder()
+                                .target(mMap.cameraPosition.target)
+                                .zoom(mMap.cameraPosition.zoom)
+                                .bearing(smoothedAzimuth)
+                                .tilt(mMap.cameraPosition.tilt)
+                                .build()
+                        )
+                    )
 
                     // Actualizar la rotación de la imagen de la brújula
                     binding.compassImage.rotation = -smoothedAzimuth
@@ -289,8 +315,10 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         mMap.setOnMapLongClickListener {
             findAddress(it)?.let { it1 -> addMarker(it.latitude, it.longitude, it1) }
             try {
-                Toast.makeText(this,"Distancia:" + lastKnownLocation!!.distanceTo(convertLatLngToLocation(it))
-                        .roundToInt().toString() + " metros",Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this, "Distancia:" + lastKnownLocation!!.distanceTo(convertLatLngToLocation(it))
+                        .roundToInt().toString() + " metros", Toast.LENGTH_SHORT
+                ).show()
             } catch (e: Exception) {
                 Log.e("LongClickMap", "Error generating the route: $e")
             }
@@ -356,8 +384,19 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                     // IF the distance is greater than 30 meters, update the last known location
                     //TODO("Send the new location to the server")
                     lastKnownLocation = newLocation
+                    currentUser?.lat = newLocation.latitude
+                    currentUser?.long = newLocation.longitude
+                    updateUser()
                 }
             }
+        }
+    }
+
+    private fun updateUser() {
+        val ref = database.getReference(usersSelector + auth.currentUser!!.uid)
+        ref.get().addOnSuccessListener {
+            if (it.getValue(User::class.java) != currentUser)
+                ref.setValue(currentUser)
         }
     }
 
@@ -408,6 +447,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         // (the camera animates to the user's current position).
         return false
     }
+
     override fun onMyLocationClick(location: Location) {
     }
 
@@ -513,7 +553,11 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
     override fun onResume() {
         super.onResume()
-        sensorManager.registerListener(lightEventListener, lightSensor,SensorManager.SENSOR_DELAY_FASTEST)
+        sensorManager.registerListener(
+            lightEventListener,
+            lightSensor,
+            SensorManager.SENSOR_DELAY_FASTEST
+        )
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
         sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI)
     }
@@ -594,6 +638,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
             }
         }
     }
+
     private fun addAllZones() {
         // Get an instance of Firestore
         val db = FirebaseFirestore.getInstance()
@@ -721,7 +766,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                         Log.i("Weather", "$weatherResponse")
                         if (weatherResponse != null) {
                             runOnUiThread {
-                                binding.tempVal.text = "Temperatura actual: ${weatherResponse.current.temperature2m} °C"
+                                binding.tempVal.text =
+                                    "Temperatura actual: ${weatherResponse.current.temperature2m} °C"
                                 binding.ambVal.text =
                                     "Humedad: ${weatherResponse.current.relativeHumidity2m} %"
                             }
