@@ -22,11 +22,8 @@ class MainActivity : AppCompatActivity() {
                 R.id.homeButton -> replaceFragmentView(Home())
                 R.id.mapButton ->
                     {
-                        val intent = Intent(this, Map::class.java)
-                        startActivity(intent)
+                        startActivity(Intent(this, Map::class.java))
                     }
-
-
                 R.id.profileButton -> replaceFragmentView(Profile())
             }
             true

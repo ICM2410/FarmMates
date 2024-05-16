@@ -81,7 +81,8 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var polyline: String
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var lastKnownLocation: Location? = null
-    /******************************************************************/
+    private var locations = myRoute.sites(mutableListOf())
+
 
     /******************************Brujula***************************/
     private lateinit var accelerometer: Sensor
@@ -147,6 +148,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        binding.goBackToMenu.setOnClickListener { goToMainMenu() }
+        binding.reportButton.setOnClickListener { goToReports() }
+        binding.chatButton.setOnClickListener { goToChat() }
         binding.reportButton.setOnClickListener { goToReports() }
 
         // Add OnClickListener to compassImage to set map orientation to north
@@ -221,6 +225,14 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
     private fun goToReports() {
         startActivity(Intent(baseContext, ReportActivity::class.java))
+    }
+
+    private fun goToMainMenu() {
+        startActivity(Intent(baseContext, MainActivity::class.java))
+    }
+
+    private fun goToChat() {
+        startActivity(Intent(baseContext, ChatListActivity::class.java))
     }
 
     private fun createLightSensorListener(): SensorEventListener {
@@ -479,12 +491,25 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private fun findAddress(location: LatLng): String? {
         val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 2)
         if (!addresses.isNullOrEmpty()) {
-            val addr = addresses[0]
-            val locname = addr.getAddressLine(0)
-            return locname
+            val addr = addresses.get(0)
+            return addr.getAddressLine(0)
+
         }
         return null
     }
+
+
+    private fun findLocation(address: String): LatLng? {
+        val addresses = geocoder.getFromLocationName(address, 2)
+        if (!addresses.isNullOrEmpty()) {
+            val addr = addresses.get(0)
+            return LatLng(
+                addr.latitude, addr.longitude
+            )
+        }
+        return null
+    }
+
 
     override fun onResume() {
         super.onResume()

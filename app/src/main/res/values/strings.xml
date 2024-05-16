@@ -59,4 +59,12 @@
     <string name="addDateHint">Selecciona una fecha:</string>
     <string name="triageLabel">Prioridad: </string>
     <string name="sendReport">Enviar</string>
+    <string name="meMessageContent">This is a Message from me</string>
+    <string name="timePlaceholder">10:00</string>
+    <string name="otherMessageContent">%s</string>
+    <string name="otherUserNamePlaceholder">Other User Name</string>
+    <string name="noAvailableUsers">No hay usuarios</string>
+    <string name="sendButton">Send</string>
+    <string name="sendMessageAlt">Send message</string>
+    <string name="typeMessageHint">Enter Message</string>
 </resources>
