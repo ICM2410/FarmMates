@@ -26,6 +26,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -73,21 +74,31 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMyLocationClickListener,
     ActivityCompat.OnRequestPermissionsResultCallback {
 
+    /******************************GoogleMaps***************************/
     private lateinit var mMap: GoogleMap
-    private var permissionDenied = false
+    private lateinit var geocoder: Geocoder
     private lateinit var polyline: String
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var lastKnownLocation: Location? = null
-    private var lastSearchedLocation: Location? = null
-    private var locations = myRoute.sites(mutableListOf())
+    /******************************************************************/
 
-    private lateinit var binding: FragmentMapBinding
-    private lateinit var geocoder: Geocoder
+
+    /******************************Permisos***************************/
+    private var permissionDenied = false
+    /*******************************************************************/
+
+
+    /******************************Sensores***************************/
     private lateinit var sensorManager: SensorManager
     private var lightSensor: Sensor? = null
-    private var temperatureSensor: Sensor? = null
-    private var humiditySensor: Sensor? = null
     private lateinit var lightEventListener: SensorEventListener
+    /*******************************************************************/
+
+
+    private var locations = myRoute.sites(mutableListOf())
+    private lateinit var binding: FragmentMapBinding
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,78 +106,18 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         binding = FragmentMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        temperatureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
-        humiditySensor = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY)
-
-
-        if (temperatureSensor == null) {
-            // El dispositivo no tiene un sensor de temperatura
-            //binding.tempVal.text = "No hay sensor de temperatura"
-
-        } else {
-            val temperatureListener = object : SensorEventListener {
-                override fun onSensorChanged(event: SensorEvent?) {
-                    val temperatureValue = event?.values?.get(0)
-                    // Procesar el valor de la temperatura aquí
-                    //tempVal.text = temperatureValue.toString() + " °C"
-                }
-
-                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-                    // Manejar cambios en la precisión del sensor si es necesario
-                }
-            }
-
-            sensorManager.registerListener(
-                temperatureListener,
-                temperatureSensor,
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-        }
-
-        if (humiditySensor == null) {
-            // El dispositivo no tiene un sensor de humedad relativa
-            //binding.ambVal.text = "No hay sensor de humedad relativa"
-        } else {
-            val humidityListener = object : SensorEventListener {
-                override fun onSensorChanged(event: SensorEvent?) {
-                    val humidityValue = event?.values?.get(0)
-                    // Procesar el valor de la humedad relativa aquí
-                    //binding.ambVal.text = humidityValue.toString() + " %"
-                }
-
-                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-                    // Manejar cambios en la precisión del sensor si es necesario
-                }
-            }
-
-            sensorManager.registerListener(
-                humidityListener,
-                humiditySensor,
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-        }
-        sensorManager = getSystemService(
-            SENSOR_SERVICE
-        ) as SensorManager
-
-        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)!!
-
-        lightEventListener = createLightSensorListener()
-
-        //onCreate
+        //Geocoder initialization
         geocoder = Geocoder(baseContext)
 
-        val file = File(filesDir, "location_data.json")
 
-        if (file.exists()) {
-            val isDeleted = file.delete()  // Elimina el archivo
-            if (isDeleted) {
-                // Si el archivo se eliminó correctamente, puedes crear uno nuevo (si es necesario)
-                val newFile = File(filesDir, "location_data.json")
-                newFile.createNewFile()  // Crea un archivo nuevo
-            }
-        }
+
+        /******************************Light Sensor***************************/
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+        lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)!!
+        lightEventListener = createLightSensorListener()
+        /*******************************************************************/
+
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -175,16 +126,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         mapFragment.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        binding.previousSteps.setOnClickListener {
-            val sites = obtainSites()
-            mMap.addPolyline(
-                PolylineOptions()
-                    .clickable(true)
-                    .addAll(sites.map { LatLng(it.latitud, it.longitud) })
-                    .color(ContextCompat.getColor(baseContext, R.color.purple_200))
-            )
-        }
 
         binding.reportButton.setOnClickListener { goToReports() }
 
@@ -233,42 +174,26 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         mMap.setPadding(0, 200, 20, 200)
         enableMyLocation()
 
-        // Add a marker in Sydney and move the camera
-        val bogota = LatLng(4.6, -74.06)
         mMap.uiSettings.isZoomControlsEnabled = true
-        mMap.setMapStyle(
-            MapStyleOptions
-                .loadRawResourceStyle(this, R.raw.oldmap)
-        )
+        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.oldmap))
 
-        // Obtener la última ubicación conocida del usuario
+        // Obtain the last known location
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             lastKnownLocation = location
             if (location != null) {
-                val userLocation = LatLng(location.latitude, location.longitude)
-
-                // Iniciar la escucha de cambios de ubicación
+                // Start location updates
                 startLocationUpdates()
             }
         }
 
         mMap.setOnMapLongClickListener {
             findAddress(it)?.let { it1 -> addMarker(it.latitude, it.longitude, it1) }
-
             try {
-                Toast.makeText(
-                    this,
-                    "Distancia:" + lastKnownLocation!!.distanceTo(convertLatLngToLocation(it))
-                        .roundToInt().toString() + " metros",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this,"Distancia:" + lastKnownLocation!!.distanceTo(convertLatLngToLocation(it))
+                        .roundToInt().toString() + " metros",Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                Log.e("punto10", "Error al calcular la distancia: $e")
+                Log.e("LongClickMap", "Error generating the route: $e")
             }
-
-
-
-
 
             lifecycleScope.launch {
                 callRequestRoute(
@@ -277,40 +202,32 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                         lastKnownLocation!!.longitude
                     ), it
                 )
-
                 delay(5000)
-
-
                 drawPolylineOnMap(polyline)
-
             }
-
 
         }
         addAllZones()
         drawAgriculturalObjects()
-
         val thread = Thread { updateWeather() }
         thread.start()
     }
 
-    fun callRequestRoute(origen: LatLng, destino: LatLng) {
-        // Lanzar una corrutina para llamar a la función suspendida
-        var response = ""
+    private fun callRequestRoute(origen: LatLng, destino: LatLng) {
+        // Start a coroutine in the main thread
         CoroutineScope(Dispatchers.Main).launch {
             requestRoute(origen, destino)
         }
     }
 
     private fun convertLatLngToLocation(latLng: LatLng): Location {
-        // Crea un nuevo objeto Location
+        // New location object
         val location = Location("provider_name")
 
-        // Establece la latitud y longitud a partir del objeto LatLng
+        // New location object with the coordinates of the LatLng object
         location.latitude = latLng.latitude
         location.longitude = latLng.longitude
 
-        // Devuelve el objeto Location
         return location
     }
 
@@ -324,11 +241,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     }
 
     private fun createLocationRequest(): LocationRequest {
-        val locationRequest = LocationRequest.create()
-        locationRequest.interval = 10000 // Intervalo de actualización
-        locationRequest.fastestInterval = 5000 // Intervalo más rápido
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        return locationRequest
+        return LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
+            .setMinUpdateIntervalMillis(5000)
+            .build()
     }
 
     private val locationCallback = object : LocationCallback() {
@@ -338,38 +253,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                 val distance = lastKnownLocation!!.distanceTo(newLocation)
 
                 if (distance > 30) {
-                    // Si la distancia es mayor a 30 metros, guarda la nueva ubicación
-                    saveLocation(newLocation)
+                    // IF the distance is greater than 30 meters, update the last known location
+                    TODO("Send the new location to the server")
                     lastKnownLocation = newLocation
                 }
             }
         }
-    }
-
-    private fun saveLocation(location: Location) {
-        val route = myRoute.site(
-            date = Date().toString(),
-            latitud = location.latitude,
-            longitud = location.longitude,
-        )
-
-
-        Log.i("punto10", route.toString())
-        var gson = Gson()
-        locations.list.add(route)
-        try {
-            val file = File(filesDir, "location_data.json")
-            file.createNewFile()
-            val fileWriter = FileWriter(file, false)
-            fileWriter.write(gson.toJson(locations, myRoute.sites::class.java))
-            fileWriter.close()
-            Log.i("LocationActivity", "Ubicación guardada: $locations")
-
-        } catch (e: Exception) {
-            Log.e("punto10", "Error al guardar la ubicación: $e")
-        }
-
-
     }
 
     @SuppressLint("MissingPermission")
@@ -419,7 +308,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         // (the camera animates to the user's current position).
         return false
     }
-
     override fun onMyLocationClick(location: Location) {
     }
 
@@ -484,17 +372,11 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private fun addMarker(lat: Double, long: Double, title: String) {
         val location = LatLng(lat, long)
 
-        // Convertir el recurso de imagen a un Bitmap
         val originalBitmap = BitmapFactory.decodeResource(resources, R.drawable.marcador)
-
-        // Escalar el Bitmap al tamaño deseado
-        // Ajusta los valores de width y height según tus necesidades
         val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, 80, 80, false)
-
-        // Convertir el Bitmap escalado a un BitmapDescriptor
         val iconDescriptor = BitmapDescriptorFactory.fromBitmap(scaledBitmap)
 
-        // Añadir el marcador con el ícono escalado
+
         mMap.addMarker(
             MarkerOptions()
                 .position(location)
@@ -502,7 +384,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                 .icon(iconDescriptor)
         )
 
-        // Mover la cámara al marcador
         mMap.moveCamera(CameraUpdateFactory.newLatLng(location))
         mMap.moveCamera(CameraUpdateFactory.zoomTo(15f))
     }
@@ -510,21 +391,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private fun findAddress(location: LatLng): String? {
         val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 2)
         if (!addresses.isNullOrEmpty()) {
-            val addr = addresses.get(0)
+            val addr = addresses[0]
             val locname = addr.getAddressLine(0)
             return locname
-        }
-        return null
-    }
-
-    private fun findLocation(address: String): LatLng? {
-        val addresses = geocoder.getFromLocationName(address, 2)
-        if (!addresses.isNullOrEmpty()) {
-            val addr = addresses.get(0)
-            val location = LatLng(
-                addr.latitude, addr.longitude
-            )
-            return location
         }
         return null
     }
@@ -547,7 +416,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         addAllZones()
         drawAgriculturalObjects()
 
-        Log.i("route", ruta)
         val decodedPath: List<LatLng> = PolyUtil.decode(ruta)
         val polylineOptions = PolylineOptions()
             .addAll(decodedPath)
@@ -557,13 +425,12 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         mMap.addPolyline(polylineOptions)
     }
 
-    suspend fun requestRoute(origin: LatLng, destination: LatLng) {
-        // Crear un cliente HTTP
+    private suspend fun requestRoute(origin: LatLng, destination: LatLng) {
+
         val client = OkHttpClient()
+        val gson = Gson()
 
-        var gson = Gson()
-
-        // Crear el cuerpo de la solicitud utilizando tus clases de datos
+        // Body of the POST request
         val requestBodyData = googleRoutesRequest(
             OriginOrDestination(
                 mobile.mates.farmmates.models.Location(
@@ -585,25 +452,19 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
             "TRAFFIC_AWARE"
         )
 
-        // Convertir el cuerpo de la solicitud a JSON utilizando kotlinx.serialization
         val requestBodyJson = gson.toJson(requestBodyData)
-        // Crear un RequestBody utilizando el JSON y el tipo MIME adecuado con la extensión toRequestBody
         val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
         val requestBody = requestBodyJson.toRequestBody(mediaType)
 
-        // Construir la URL para la solicitud
         val baseUrl = "https://routes.googleapis.com/directions/v2:computeRoutes"
         val url = "$baseUrl?key=AIzaSyAoixCSGBozzBjpV_njSFf3eTRTnFaW9kg"
 
-        Log.e("route", url)
-        // Construir la solicitud HTTP POST
         val request = Request.Builder()
             .url(url)
             .post(requestBody)
             .addHeader("X-Goog-FieldMask", "routes.polyline.encodedPolyline")
             .build()
 
-        // Realizar la solicitud HTTP de forma asíncrona utilizando corrutinas
         withContext(Dispatchers.IO) {
             polyline = try {
                 val response: Response = client.newCall(request).execute()
@@ -619,42 +480,14 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
             }
         }
     }
-
-    private fun obtainSites(): MutableList<myRoute.site> {
-        Log.i("punto10", "obtainSites")
-        val file = File(filesDir, "location_data.json")
-
-
-        if (file.exists()) {
-            val json = file.readText()
-            Log.i("punto10", "Obteniendo datos: $json")
-
-            try {
-                val gson = Gson()
-                val sitesData = gson.fromJson(json, myRoute.sites::class.java)
-
-                Log.w("punto10", "Datos decodificados: $sitesData")
-
-                return sitesData.list
-
-            } catch (e: Exception) {
-                Log.e("punto10", "Error al decodificar los datos: $e")
-            }
-
-        }
-        return mutableListOf()
-
-    }
-
     private fun addAllZones() {
-        // Obtener la instancia de Firestore
+        // Get an instance of Firestore
         val db = FirebaseFirestore.getInstance()
 
-        // Leer todos los documentos de la colección 'zones'
+        // Get all documents in the 'zones' collection
         db.collection("zones").get().addOnSuccessListener { documents ->
             if (documents != null && !documents.isEmpty) {
                 for (document in documents) {
-                    // Extraer los puntos de cada documento y crear un polígono
                     val points =
                         document.get("points") as? List<KotlinMap<String, Double>> ?: listOf()
                     val polygonOptions = PolygonOptions()
