@@ -56,7 +56,7 @@
 
         <ImageButton
             android:id="@+id/chatButton"
-            android:layout_width="75dp"
+            android:layout_width="81dp"
             android:layout_height="75dp"
             android:layout_gravity="end"
             android:backgroundTint="@android:color/transparent"
@@ -127,6 +127,7 @@
             android:layout_height="wrap_content"
             android:background="#000000"
             android:backgroundTint="#000000"
+            android:padding="5dp"
             android:textColor="#FFFFFF"
             android:textColorLink="#FFFFFF" />
 
@@ -135,6 +136,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#000000"
+            android:padding="5dp"
             android:textColor="#FFFFFF"
             android:translationY="20dp" />
 
@@ -144,19 +146,15 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:layout_marginStart="10dp"
-            android:layout_marginBottom="100dp">
+            android:layout_marginBottom="100dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/previousSteps"
-                android:layout_width="55dp"
-                android:layout_height="55dp"
-                android:paddingTop="11dp"
-                android:paddingEnd="30dp"
-                app:icon="@drawable/step_back"
-                app:iconGravity="top"
-                app:iconSize="25dp"
-                tools:ignore="RtlSymmetry" />
-        </RelativeLayout>
+        <ImageView
+            android:id="@+id/compassImage"
+            android:layout_width="81dp"
+            android:layout_height="75dp"
+            android:layout_gravity="end"
+            android:translationY="160dp"
+            app:srcCompat="@drawable/cardinal_point" />
 
     </FrameLayout>
 
