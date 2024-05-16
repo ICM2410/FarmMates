@@ -78,7 +78,6 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var polyline: String
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var lastKnownLocation: Location? = null
-    private var lastSearchedLocation: Location? = null
     private var locations = myRoute.sites(mutableListOf())
 
     private lateinit var binding: FragmentMapBinding
@@ -176,22 +175,22 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        binding.previousSteps.setOnClickListener {
-            val sites = obtainSites()
-            mMap.addPolyline(
-                PolylineOptions()
-                    .clickable(true)
-                    .addAll(sites.map { LatLng(it.latitud, it.longitud) })
-                    .color(ContextCompat.getColor(baseContext, R.color.purple_200))
-            )
-        }
-
+        binding.goBackToMenu.setOnClickListener { goToMainMenu() }
         binding.reportButton.setOnClickListener { goToReports() }
+        binding.chatButton.setOnClickListener { goToChat() }
 
     }
 
     private fun goToReports() {
         startActivity(Intent(baseContext, ReportActivity::class.java))
+    }
+
+    private fun goToMainMenu() {
+        startActivity(Intent(baseContext, MainActivity::class.java))
+    }
+
+    private fun goToChat() {
+        startActivity(Intent(baseContext, ChatListActivity::class.java))
     }
 
     private fun createLightSensorListener(): SensorEventListener {
@@ -511,8 +510,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 2)
         if (!addresses.isNullOrEmpty()) {
             val addr = addresses.get(0)
-            val locname = addr.getAddressLine(0)
-            return locname
+            return addr.getAddressLine(0)
         }
         return null
     }
@@ -521,10 +519,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
         val addresses = geocoder.getFromLocationName(address, 2)
         if (!addresses.isNullOrEmpty()) {
             val addr = addresses.get(0)
-            val location = LatLng(
+            return LatLng(
                 addr.latitude, addr.longitude
             )
-            return location
         }
         return null
     }
