@@ -149,7 +149,6 @@ class PersonalRegisterActivity : AppCompatActivity() {
     private fun savePersonalInfo(profilePicUrl: String) {
         // Save user info to realtime database
         if (auth.currentUser != null) {
-
             val user = User(
                 binding.name.text.toString(),
                 binding.lastName.text.toString(),

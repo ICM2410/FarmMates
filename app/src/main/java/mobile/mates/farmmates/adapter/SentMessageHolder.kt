@@ -11,7 +11,7 @@ class SentMessageHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val binding: ItemChatMeBinding = ItemChatMeBinding.bind(itemView)
 
     fun bind(message: Message) {
-        binding.textGchatDateMe.text = message.content
+        binding.textGchatMessageMe.text = message.content
 
         val formatter = SimpleDateFormat("EEE MMM dd - HH:mm", Locale.ENGLISH)
         binding.textGchatTimestampMe.text = formatter.format(message.createdAt).toString()

@@ -16,13 +16,15 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import mobile.mates.farmmates.adapter.MessageListAdapter
 import mobile.mates.farmmates.databinding.ActivityChatBinding
+import mobile.mates.farmmates.models.chat.ChatRoom
 import mobile.mates.farmmates.models.chat.Message
 import java.util.Date
+
 
 class ChatActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityChatBinding
-    private lateinit var messageList: ArrayList<Message>
+    private var messageList = arrayListOf<Message>()
 
     private var otherUserId: String? = null
 
@@ -33,6 +35,9 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
     private lateinit var ref: DatabaseReference
     private val chatSelector = "chats/"
+    private val messageSelector =  "messages/"
+    private var chatRoom : ChatRoom? = null
+    private var roomKey : String = ""
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,10 +48,53 @@ class ChatActivity : AppCompatActivity() {
         auth = Firebase.auth
         database = Firebase.database
 
+        findChatRoom()
+
         otherUserId = intent.getStringExtra("userToChat")
-        loadMessages()
 
         binding.buttonGchatSend.setOnClickListener { sendMessage() }
+    }
+
+    private fun findChatRoom() {
+        val roomRef = database.getReference(chatSelector)
+        roomRef.addListenerForSingleValueEvent(filterChatRoom)
+    }
+
+    private val filterChatRoom = object : ValueEventListener{
+        override fun onDataChange(snapshot: DataSnapshot) {
+            for(child in snapshot.children) {
+                val room = child.getValue(ChatRoom::class.java)
+                if(room != null) {
+                    val users = arrayListOf(room.firstUser, room.secondUser)
+                    if (users.contains(auth.currentUser!!.uid) && users.contains(otherUserId)) {
+                        chatRoom = room
+                        roomKey = child.key!!
+                        loadMessages()
+                        break
+                    }
+                }
+            }
+            if(chatRoom == null)
+                createChatRoom()
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.e("Chat", "Error loading chat room")
+        }
+    }
+
+    private fun createChatRoom() {
+        val ref = database.getReference(chatSelector).push()
+        val users = arrayListOf(
+            auth.currentUser!!.uid,
+            otherUserId!!
+        )
+        val newChatRoom = ChatRoom(users[0], users[1])
+        ref.setValue(newChatRoom).addOnSuccessListener {
+            chatRoom = newChatRoom
+            roomKey = ref.key!!
+            loadMessages()
+        }
     }
 
     private fun sendMessage() {
@@ -54,12 +102,11 @@ class ChatActivity : AppCompatActivity() {
         if (content.isEmpty())
             return
 
-        val newMessage = Message(content, auth.currentUser!!.uid, Date())
+        val newMessage = Message(roomKey, content, auth.currentUser!!.uid, Date())
 
-        ref = database.getReference(chatSelector + auth.currentUser!!.uid + otherUserId)
-        ref.orderByChild("createdAt").get().addOnSuccessListener {
-            ref.setValue(newMessage)
-        }
+        val ref = database.getReference(messageSelector).push()
+        ref.setValue(newMessage)
+        binding.editGchatMessage.text.clear()
     }
 
     private fun loadMessages() {
@@ -67,20 +114,22 @@ class ChatActivity : AppCompatActivity() {
             Toast.makeText(baseContext, "Error loading user to chat", Toast.LENGTH_SHORT).show()
             finish()
         }
-
-        ref = database.getReference(chatSelector + auth.currentUser!!.uid + otherUserId)
-        ref.addValueEventListener(chatEventListener)
+        database.getReference(messageSelector)
+            .orderByChild("room")
+            .equalTo(roomKey)
+            .addValueEventListener(chatMessagesListener)
     }
 
-    private val chatEventListener = object : ValueEventListener {
+    private val chatMessagesListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             messageList.clear()
-            for (child in snapshot.children) {
+            for(child in snapshot.children) {
                 val message = child.getValue(Message::class.java)
-                if (message != null)
+                if(message != null) {
                     messageList.add(message)
+                    updateMessages()
+                }
             }
-            updateMessages()
         }
 
         override fun onCancelled(error: DatabaseError) {
