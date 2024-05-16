@@ -74,7 +74,7 @@ class LoginActivity : AppCompatActivity() {
         binding.goSignUp.setOnClickListener { goToSignUp() }
 
         /******************************Notifications Service**************************/
-        if (!Notifications.isRunning) {
+        if (!Notifications.isRunning && auth.currentUser != null) {
             val serviceIntent = Intent(this, Notifications::class.java)
             serviceIntent.putExtra("currentUserId", auth.currentUser!!.uid?:"")
             startForegroundService(serviceIntent)
