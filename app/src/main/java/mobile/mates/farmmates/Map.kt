@@ -32,6 +32,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
@@ -72,7 +73,7 @@ import kotlin.collections.Map as KotlinMap
 class Map : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMyLocationButtonClickListener,
     GoogleMap.OnMyLocationClickListener,
-    ActivityCompat.OnRequestPermissionsResultCallback {
+    ActivityCompat.OnRequestPermissionsResultCallback, SensorEventListener {
 
     /******************************GoogleMaps***************************/
     private lateinit var mMap: GoogleMap
@@ -80,6 +81,15 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var polyline: String
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var lastKnownLocation: Location? = null
+    /******************************************************************/
+
+    /******************************Brujula***************************/
+    private lateinit var accelerometer: Sensor
+    private lateinit var magnetometer: Sensor
+    private var gravity = FloatArray(3)
+    private var geomagnetic = FloatArray(3)
+    private var hasGravity = false
+    private var hasGeomagnetic = false
     /******************************************************************/
 
 
@@ -94,8 +104,14 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var lightEventListener: SensorEventListener
     /*******************************************************************/
 
+    // Variables para filtro pasa bajos y control de frecuencia
+    private val alpha = 0.25f
+    private var smoothedAzimuth = 0f
+    private var lastUpdateTime = 0L
+    private val updateInterval = 500
+    private var isCompassClicked = false
 
-    private var locations = myRoute.sites(mutableListOf())
+
     private lateinit var binding: FragmentMapBinding
 
 
@@ -111,13 +127,17 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
 
 
-        /******************************Light Sensor***************************/
+
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
         lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)!!
         lightEventListener = createLightSensorListener()
         /*******************************************************************/
 
+        /******************************Light Sensor***************************/
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)!!
+        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)!!
+        /*******************************************************************/
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -129,6 +149,74 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
         binding.reportButton.setOnClickListener { goToReports() }
 
+        // Add OnClickListener to compassImage to set map orientation to north
+        binding.compassImage.setOnClickListener {
+            isCompassClicked = !isCompassClicked
+            setMapToNorth()
+        }
+    }
+    private fun setMapToNorth() {
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+            CameraPosition.Builder()
+                .target(mMap.cameraPosition.target) // keep the current position
+                .zoom(mMap.cameraPosition.zoom) // keep the current zoom level
+                .bearing(0f) // set bearing to north
+                .tilt(mMap.cameraPosition.tilt) // keep the current tilt
+                .build()
+        ))
+        binding.compassImage.rotation = 0f
+    }
+
+    private fun lowPassFilter(input: Float, output: Float): Float {
+        return output + alpha * (input - output)
+    }
+
+    override fun onSensorChanged(event: SensorEvent) {
+        if (isCompassClicked) return
+        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            gravity = event.values.clone()
+            hasGravity = true
+        } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+            geomagnetic = event.values.clone()
+            hasGeomagnetic = true
+        }
+
+        if (hasGravity && hasGeomagnetic) {
+            val rotationMatrix = FloatArray(9)
+            val success = SensorManager.getRotationMatrix(rotationMatrix, null, gravity, geomagnetic)
+            if (success) {
+                val orientation = FloatArray(3)
+                SensorManager.getOrientation(rotationMatrix, orientation)
+                var azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
+                azimuth = (azimuth + 360) % 360
+
+                // Aplicar filtro pasa bajos
+                smoothedAzimuth = lowPassFilter(azimuth, smoothedAzimuth)
+
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastUpdateTime > updateInterval) {
+                    lastUpdateTime = currentTime
+
+                    if (!this::mMap.isInitialized) return
+                    // Actualizar la orientación del mapa de Google
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                        CameraPosition.Builder()
+                            .target(mMap.cameraPosition.target)
+                            .zoom(mMap.cameraPosition.zoom)
+                            .bearing(smoothedAzimuth)
+                            .tilt(mMap.cameraPosition.tilt)
+                            .build()
+                    ))
+
+                    // Actualizar la rotación de la imagen de la brújula
+                    binding.compassImage.rotation = -smoothedAzimuth
+                }
+            }
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
+        // No se necesita implementar esto para la brújula.
     }
 
     private fun goToReports() {
@@ -254,7 +342,7 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
                 if (distance > 30) {
                     // IF the distance is greater than 30 meters, update the last known location
-                    TODO("Send the new location to the server")
+                    //TODO("Send the new location to the server")
                     lastKnownLocation = newLocation
                 }
             }
@@ -400,15 +488,16 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
 
     override fun onResume() {
         super.onResume()
-        sensorManager.registerListener(
-            lightEventListener, lightSensor,
-            SensorManager.SENSOR_DELAY_FASTEST
-        )
+        sensorManager.registerListener(lightEventListener, lightSensor,SensorManager.SENSOR_DELAY_FASTEST)
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI)
+        sensorManager.registerListener(this, magnetometer, SensorManager.SENSOR_DELAY_UI)
     }
 
     override fun onPause() {
         super.onPause()
         sensorManager.unregisterListener(lightEventListener)
+        sensorManager.unregisterListener(this, accelerometer)
+        sensorManager.unregisterListener(this, magnetometer)
     }
 
     private fun drawPolylineOnMap(ruta: String) {
@@ -607,9 +696,9 @@ class Map : AppCompatActivity(), OnMapReadyCallback,
                         Log.i("Weather", "$weatherResponse")
                         if (weatherResponse != null) {
                             runOnUiThread {
-                                binding.tempVal.text = "${weatherResponse.current.temperature2m} °C"
+                                binding.tempVal.text = "Temperatura actual: ${weatherResponse.current.temperature2m} °C"
                                 binding.ambVal.text =
-                                    "${weatherResponse.current.relativeHumidity2m} %"
+                                    "Humedad: ${weatherResponse.current.relativeHumidity2m} %"
                             }
                         }
 
